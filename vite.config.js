@@ -16,5 +16,8 @@ export default defineConfig({
   envDir: '.',
   define: {
     'process.env': {}
+  },
+  build: {
+    target: 'esnext'
   }
 })

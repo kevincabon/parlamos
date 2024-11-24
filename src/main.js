@@ -122,6 +122,8 @@ app.use(router)
 
 // Initialiser l'auth avant de monter l'application
 const authStore = useAuthStore()
-await authStore.initAuth()
-
-app.mount('#app') 
+authStore.initAuth().then(() => {
+  app.mount('#app')
+}).catch(error => {
+  console.error('Erreur lors de l\'initialisation de l\'auth:', error)
+}) 
