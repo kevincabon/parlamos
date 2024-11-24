@@ -82,12 +82,68 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     try {
       loading.value = true
+      
+      // Vérifier d'abord s'il y a une session active
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        // Si pas de session, réinitialiser l'état local sans appeler signOut
+        user.value = null
+        profile.value = null
+        return
+      }
+      
+      // Si une session existe, procéder à la déconnexion
       const { error } = await supabase.auth.signOut()
       if (error) throw error
+      
       user.value = null
       profile.value = null
     } catch (error) {
-      throw error
+      console.error('Erreur lors de la déconnexion:', error)
+      // Réinitialiser quand même l'état local en cas d'erreur
+      user.value = null
+      profile.value = null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function register(email, password, username) {
+    try {
+      loading.value = true
+
+      // Créer l'utilisateur avec les métadonnées username
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username: username // Stocké dans raw_user_meta_data
+          }
+        }
+      })
+
+      if (signUpError) {
+        throw signUpError
+      }
+
+      if (!data?.user) {
+        throw new Error('Erreur lors de la création de l\'utilisateur')
+      }
+
+      return { 
+        data, 
+        error: null,
+        message: 'Inscription réussie ! Veuillez vérifier votre email pour confirmer votre compte.'
+      }
+
+    } catch (error) {
+      console.error('Erreur lors de l\'inscription:', error)
+      return { 
+        data: null, 
+        error: error.message || 'Une erreur est survenue lors de l\'inscription'
+      }
     } finally {
       loading.value = false
     }
@@ -103,6 +159,7 @@ export const useAuthStore = defineStore('auth', () => {
     initAuth,
     login,
     logout,
-    fetchProfile
+    fetchProfile,
+    register
   }
 }) 
