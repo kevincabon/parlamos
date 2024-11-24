@@ -88,7 +88,14 @@ const router = createRouter({
       component: Roadmap, 
       name: 'roadmap'
     }
-  ]
+  ],
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0 }
+    }
+  }
 })
 
 // Navigation guard
@@ -111,6 +118,15 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
+  next()
+})
+
+// Ajouter ce guard pour forcer le rechargement des composants
+router.beforeResolve(async (to, from, next) => {
+  // Si on change de route mais pas de composant
+  if (to.name === from.name) {
+    to.meta.reload = true
+  }
   next()
 })
 
