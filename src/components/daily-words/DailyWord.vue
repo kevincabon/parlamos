@@ -7,7 +7,10 @@
           <h2 class="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Mot du Jour
           </h2>
-          <p class="text-sm text-gray-400 font-medium">{{ formatDate(word.date) }}</p>
+          <div class="space-y-0.5">
+            <p class="text-sm text-gray-400 font-medium">{{ formatDate(word.date, 'fr') }}</p>
+            <p class="text-sm text-gray-400/80 font-medium">{{ formatDate(word.date, 'es') }}</p>
+          </div>
         </div>
         
         <div class="flex space-x-3">
@@ -84,8 +87,8 @@ defineEmits(['like', 'save'])
 
 const isPlaying = ref(false)
 
-function formatDate(date) {
-  return new Date(date).toLocaleDateString('fr-FR', {
+function formatDate(date, locale = 'fr') {
+  return new Date(date).toLocaleDateString(`${locale}-${locale.toUpperCase()}`, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -111,4 +114,4 @@ function playAudio(lang) {
     isPlaying.value = false
   })
 }
-</script> 
+</script>

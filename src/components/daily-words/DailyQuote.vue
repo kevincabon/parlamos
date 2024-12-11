@@ -7,7 +7,10 @@
           <h2 class="text-3xl font-bold bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
             Citation du Jour
           </h2>
-          <p class="text-sm text-gray-400 font-medium">{{ formatDate(quote.date) }}</p>
+          <div class="space-y-0.5">
+            <p class="text-sm text-gray-400 font-medium">{{ formatDate(quote.date, 'fr') }}</p>
+            <p class="text-sm text-gray-400/80 font-medium">{{ formatDate(quote.date, 'es') }}</p>
+          </div>
         </div>
         
         <div class="flex space-x-3">
@@ -69,12 +72,12 @@ defineProps({
 
 defineEmits(['like', 'save'])
 
-function formatDate(date) {
-  return new Date(date).toLocaleDateString('fr-FR', {
+function formatDate(date, locale = 'fr') {
+  return new Date(date).toLocaleDateString(`${locale}-${locale.toUpperCase()}`, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   })
 }
-</script> 
+</script>

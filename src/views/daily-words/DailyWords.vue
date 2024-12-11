@@ -413,4 +413,4 @@ onMounted(async () => {
   await fetchHistory()
   await checkSavedWords()
 })
-</script> 
+</script>
