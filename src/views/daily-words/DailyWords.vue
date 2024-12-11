@@ -8,6 +8,12 @@
       <p class="text-xl text-gray-300 max-w-2xl mx-auto">
         Découvrez chaque jour de nouveaux mots et citations en français et espagnol
       </p>
+      <button @click="copyDailyContent" class="mt-4 group relative px-6 py-2 rounded-full overflow-hidden bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 border border-primary/20 hover:border-primary/40 transition-all duration-500">
+        <div class="relative flex items-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+          <span class="font-medium text-primary">Copier le contenu du jour</span>
+        </div>
+      </button>
       
       <!-- Bouton Admin -->
       <div v-if="isAdmin" class="flex justify-center">
@@ -405,6 +411,53 @@ async function generateNewContent() {
     }
   } finally {
     generating.value = false
+  }
+}
+
+async function copyDailyContent() {
+  if (!dailyWord.value || !dailyQuote.value) return
+
+  const formatDate = (date, locale) => {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+    const formattedDate = new Date(date).toLocaleDateString(`${locale}-${locale.toUpperCase()}`, options)
+    return locale === 'es' 
+      ? formattedDate.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+      : formattedDate
+  }
+
+  const content = [
+    formatDate(dailyWord.value.date, 'es'),
+    formatDate(dailyWord.value.date, 'fr'),
+    '',
+    `${dailyWord.value.es} - ${dailyWord.value.fr}`,
+    '',
+    dailyQuote.value.es,
+    '',
+    dailyQuote.value.fr,
+    '',
+    `— ${dailyQuote.value.author} (${dailyQuote.value.dates})`,
+    `${dailyQuote.value.profession} (écrivain français)`
+  ].join('\n')
+
+  try {
+    await navigator.clipboard.writeText(content)
+    notification.value = {
+      show: true,
+      type: 'success',
+      title: 'Copié !',
+      message: 'Le contenu a été copié dans le presse-papiers'
+    }
+    setTimeout(() => {
+      notification.value.show = false
+    }, 3000)
+  } catch (err) {
+    console.error('Erreur lors de la copie:', err)
+    notification.value = {
+      show: true,
+      type: 'error',
+      title: 'Erreur',
+      message: 'Impossible de copier le contenu'
+    }
   }
 }
 
