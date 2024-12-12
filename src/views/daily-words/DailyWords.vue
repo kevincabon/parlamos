@@ -1,22 +1,48 @@
 <template>
   <div class="space-y-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+
     <!-- En-tête -->
+
+
     <header class="text-center space-y-6">
+
+
       <h1 class="text-5xl font-bold bg-gradient-to-r from-primary via-purple-500 to-secondary bg-clip-text text-transparent">
         Mots et Citations du Jour
       </h1>
+
+
       <p class="text-xl text-gray-300 max-w-2xl mx-auto">
         Découvrez chaque jour de nouveaux mots et citations en français et espagnol
       </p>
+
+
       <button @click="copyDailyContent" class="mt-4 group relative px-6 py-2 rounded-full overflow-hidden bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 border border-primary/20 hover:border-primary/40 transition-all duration-500">
+
+
         <div class="relative flex items-center space-x-2">
+
+
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+
+
           <span class="font-medium text-primary">Copier le contenu du jour</span>
+
+
         </div>
+
+
       </button>
+
+
       
       <!-- Bouton Admin -->
+
+
       <div v-if="isAdmin" class="flex justify-center">
+
+
         <button
           @click="generateNewContent"
           class="group relative px-8 py-3 rounded-full overflow-hidden bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 border border-primary/20 hover:border-primary/40 transition-all duration-500"
@@ -53,7 +79,10 @@
       </div>
     </header>
 
+
     <!-- Notification -->
+
+
     <Notification
       :show="notification.show"
       :type="notification.type"
@@ -62,7 +91,10 @@
       @close="notification.show = false"
     />
 
+
     <!-- Loader -->
+
+
     <div v-if="loading" class="flex justify-center py-12">
       <div class="relative w-16 h-16">
         <div class="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
@@ -70,21 +102,29 @@
       </div>
     </div>
 
+
     <!-- Message d'erreur -->
+
+
     <div v-else-if="error" class="text-center py-12">
       <div class="inline-block p-6 rounded-lg bg-red-500/10 border border-red-500/20">
         <p class="text-red-400">{{ error }}</p>
       </div>
     </div>
 
+
     <!-- Contenu principal -->
+
+
     <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <DailyWord 
         v-if="dailyWord"
         :word="dailyWord" 
         @like="handleLike('word', dailyWord.id)" 
         @save="handleSave('word', dailyWord.id)"
+        @update="handleUpdate"
       />
+
 
       <DailyQuote 
         v-if="dailyQuote"
@@ -94,7 +134,10 @@
       />
     </div>
 
+
     <!-- Section Historique -->
+
+
     <HistorySection 
       v-if="previousWords.length > 0 || previousQuotes.length > 0"
       :words="previousWords"
@@ -106,6 +149,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { supabase } from '@/config/supabase'
@@ -115,20 +159,45 @@ import DailyQuote from '@/components/daily-words/DailyQuote.vue'
 import HistorySection from '@/components/daily-words/HistorySection.vue'
 import Notification from '@/components/common/Notification.vue'
 
+
 const loading = ref(true)
+
+
 const error = ref(null)
+
+
 const loadingMore = ref(false)
+
+
 const dailyWord = ref(null)
+
+
 const dailyQuote = ref(null)
+
+
 const previousWords = ref([])
+
+
 const previousQuotes = ref([])
+
+
 const hasMore = ref(true)
+
+
 const currentPage = ref(1)
+
+
 const PAGE_SIZE = 10
 
+
 const authStore = useAuthStore()
+
+
 const isAdmin = computed(() => authStore.isAdmin)
+
+
 const generating = ref(false)
+
 
 const notification = ref({
   show: false,
@@ -137,10 +206,12 @@ const notification = ref({
   message: ''
 })
 
+
 async function fetchTodayContent() {
   try {
     const today = new Date().toISOString().split('T')[0]
     const userId = authStore.user?.id
+
 
     // D'abord récupérer le mot du jour
     const { data: word, error: wordError } = await supabase
@@ -149,9 +220,11 @@ async function fetchTodayContent() {
       .eq('date', today)
       .single()
 
+
     if (wordError && !wordError.message.includes('No rows found')) {
       throw wordError
     }
+
 
     // Ensuite vérifier si l'utilisateur a liké ce mot
     if (word && userId) {
@@ -163,10 +236,12 @@ async function fetchTodayContent() {
         .eq('content_id', word.id)
         .single()
 
+
       dailyWord.value = { ...word, liked: !!likes }
     } else {
       dailyWord.value = word || null
     }
+
 
     // Même chose pour la citation
     const { data: quote, error: quoteError } = await supabase
@@ -175,9 +250,11 @@ async function fetchTodayContent() {
       .eq('date', today)
       .single()
 
+
     if (quoteError && !quoteError.message.includes('No rows found')) {
       throw quoteError
     }
+
 
     // Vérifier si l'utilisateur a liké cette citation
     if (quote && userId) {
@@ -189,10 +266,12 @@ async function fetchTodayContent() {
         .eq('content_id', quote.id)
         .single()
 
+
       dailyQuote.value = { ...quote, liked: !!likes }
     } else {
       dailyQuote.value = quote || null
     }
+
 
   } catch (err) {
     error.value = "Erreur lors du chargement du contenu du jour"
@@ -202,10 +281,12 @@ async function fetchTodayContent() {
   }
 }
 
+
 async function fetchHistory() {
   try {
     loadingMore.value = true
     const offset = (currentPage.value - 1) * PAGE_SIZE
+
 
     // Récupérer l'historique des mots
     const { data: words, error: wordsError } = await supabase
@@ -214,8 +295,10 @@ async function fetchHistory() {
       .order('date', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1)
 
+
     if (wordsError) throw wordsError
     previousWords.value = [...previousWords.value, ...(words || [])]
+
 
     // Récupérer l'historique des citations
     const { data: quotes, error: quotesError } = await supabase
@@ -224,8 +307,10 @@ async function fetchHistory() {
       .order('date', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1)
 
+
     if (quotesError) throw quotesError
     previousQuotes.value = [...previousQuotes.value, ...(quotes || [])]
+
 
     hasMore.value = (words?.length === PAGE_SIZE) || (quotes?.length === PAGE_SIZE)
   } catch (err) {
@@ -235,6 +320,7 @@ async function fetchHistory() {
     loadingMore.value = false
   }
 }
+
 
 async function handleLike(type, id) {
   try {
@@ -248,6 +334,7 @@ async function handleLike(type, id) {
       return
     }
 
+
     const { data, error } = await supabase
       .rpc('handle_like', {
         p_user_id: authStore.user.id,
@@ -255,7 +342,9 @@ async function handleLike(type, id) {
         p_content_id: id
       })
 
+
     if (error) throw error
+
 
     // Mettre à jour l'état local
     if (type === 'word') {
@@ -272,6 +361,7 @@ async function handleLike(type, id) {
       }
     }
 
+
     // Notification de succès
     notification.value = {
       show: true,
@@ -279,6 +369,7 @@ async function handleLike(type, id) {
       title: data.liked ? 'Like ajouté' : 'Like retiré',
       message: data.liked ? 'Merci pour votre like !' : 'Like retiré avec succès'
     }
+
 
     setTimeout(() => {
       notification.value.show = false
@@ -294,6 +385,7 @@ async function handleLike(type, id) {
   }
 }
 
+
 async function handleSave(type, id) {
   try {
     const userId = authStore.user?.id
@@ -307,6 +399,7 @@ async function handleSave(type, id) {
       return
     }
 
+
     const { data, error } = await supabase.rpc('handle_content_action', {
       p_user_id: userId,
       p_content_type: type,
@@ -314,7 +407,9 @@ async function handleSave(type, id) {
       p_action_type: 'save'
     })
 
+
     if (error) throw error
+
 
     // Mettre à jour l'état local
     if (type === 'word') {
@@ -323,6 +418,7 @@ async function handleSave(type, id) {
       dailyQuote.value.saved = data.saved
     }
 
+
     notification.value = {
       show: true,
       type: 'success',
@@ -330,9 +426,11 @@ async function handleSave(type, id) {
       message: data.saved ? 'Contenu ajouté aux favoris' : 'Contenu retiré des favoris'
     }
 
+
     setTimeout(() => {
       notification.value.show = false
     }, 3000)
+
 
   } catch (error) {
     console.error('Erreur lors de la sauvegarde:', error)
@@ -345,19 +443,24 @@ async function handleSave(type, id) {
   }
 }
 
+
 async function checkSavedWords() {
   try {
     const userId = authStore.user?.id
     if (!userId) return
+
 
     const { data: savedWords, error } = await supabase
       .from('saved_words')
       .select('word_id')
       .eq('user_id', userId)
 
+
     if (error) throw error
 
+
     const savedWordIds = savedWords.map(sw => sw.word_id)
+
 
     // Mettre à jour l'état des mots
     if (dailyWord.value) {
@@ -371,24 +474,30 @@ async function checkSavedWords() {
   }
 }
 
+
 function loadMore() {
   if (loadingMore.value || !hasMore.value) return
   currentPage.value++
   fetchHistory()
 }
 
+
 async function generateNewContent() {
   try {
     generating.value = true
-    
+
+
     // Appeler la fonction RPC de Supabase
     const { error } = await supabase.rpc('generate_daily_word')
-    
+
+
     if (error) throw error
+
 
     // Recharger le contenu
     await fetchTodayContent()
-    
+
+
     // Afficher la notification de succès
     notification.value = {
       show: true,
@@ -396,6 +505,7 @@ async function generateNewContent() {
       title: 'Contenu généré',
       message: 'Le nouveau contenu a été généré avec succès'
     }
+
 
     // Cacher la notification après 5 secondes
     setTimeout(() => {
@@ -414,44 +524,61 @@ async function generateNewContent() {
   }
 }
 
+
 async function copyDailyContent() {
-  if (!dailyWord.value || !dailyQuote.value) return
-
-  const formatDate = (date, locale) => {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
-    const formattedDate = new Date(date).toLocaleDateString(`${locale}-${locale.toUpperCase()}`, options)
-    return locale === 'es' 
-      ? formattedDate.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-      : formattedDate
-  }
-
-  const content = [
-    formatDate(dailyWord.value.date, 'es'),
-    formatDate(dailyWord.value.date, 'fr'),
-    '',
-    `${dailyWord.value.es} - ${dailyWord.value.fr}`,
-    '',
-    dailyQuote.value.es,
-    '',
-    dailyQuote.value.fr,
-    '',
-    `— ${dailyQuote.value.author} (${dailyQuote.value.dates})`,
-    `${dailyQuote.value.profession} (écrivain français)`
-  ].join('\n')
-
   try {
+    // Formater la date espagnole avec majuscules
+    const dateEs = new Date(dailyWord.value.date).toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ').replace(/De /g, 'De ')
+
+    // Formater la date française
+    const dateFr = new Date(dailyWord.value.date).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+
+    const content = [
+      dateEs,
+      '',
+      dateFr,
+      '',
+      '',
+      `${dailyWord.value.es} - ${dailyWord.value.fr}`,
+      '',
+      '',
+      dailyWord.value.example_es || '',
+      '',
+      dailyWord.value.example_fr || '',
+      '',
+      '',
+      dailyQuote.value.es,
+      '',
+      dailyQuote.value.fr,
+      '',
+      '',
+      `— ${dailyQuote.value.author} (${dailyQuote.value.dates})`,
+      '',
+      `${dailyQuote.value.profession} (${dailyQuote.value.profession_fr})`
+    ].filter(line => line !== '').join('\n')
+
     await navigator.clipboard.writeText(content)
     notification.value = {
       show: true,
       type: 'success',
       title: 'Copié !',
-      message: 'Le contenu a été copié dans le presse-papiers'
+      message: 'Le contenu du jour a été copié dans le presse-papiers'
     }
     setTimeout(() => {
       notification.value.show = false
     }, 3000)
-  } catch (err) {
-    console.error('Erreur lors de la copie:', err)
+  } catch (error) {
+    console.error('Erreur lors de la copie:', error)
     notification.value = {
       show: true,
       type: 'error',
@@ -460,6 +587,13 @@ async function copyDailyContent() {
     }
   }
 }
+
+
+async function handleUpdate(updatedWord) {
+  // Mettre à jour le mot dans la liste
+  dailyWord.value = updatedWord
+}
+
 
 onMounted(async () => {
   await fetchTodayContent()
