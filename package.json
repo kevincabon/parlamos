@@ -10,8 +10,11 @@
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
+    "@primevue/themes": "^4.2.5",
     "@supabase/supabase-js": "^2.39.0",
     "pinia": "^2.1.7",
+    "primeicons": "^7.0.0",
+    "primevue": "^3.35.0",
     "vue": "^3.4.15",
     "vue-router": "^4.2.5"
   },
